@@ -82,8 +82,25 @@ export default function MapPage() {
     setTimeout(() => { setLabelText(pendingLabel.current); setLabelVisible(true) }, 250)
   }, [])
 
-  // ── 필터 데이터 로드 ───────────────────────────────────────
+  const filteredPlaces = filterGu === '전체'
+    ? allPlaces
+    : allPlaces.filter(p => p.sigungu === filterGu)
+
+  const filteredTotal = filteredPlaces.reduce((s, p) => s + (p.total_amount ?? 0), 0)
+
+  // 항상 최신 filteredTotal을 ref에 보관 (필터 변경 직전 값 스냅용)
+  const filteredTotalRef = useRef(0)
+  filteredTotalRef.current = filteredTotal
+
+  // 연도·식사유형 필터 변경 → 진행 중 애니메이션 취소 + 이전 실제값으로 스냅 후 새 데이터 로드
   useEffect(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    displayAmtRef.current = filteredTotalRef.current
+    tick()
+
     const params: Record<string, string | number> = {}
     if (filterYear !== '전체') params.p_year = Number(filterYear)
     if (filterMeal !== '전체') params.p_meal_type = filterMeal
@@ -91,15 +108,10 @@ export default function MapPage() {
       .rpc('place_ranking', params)
       .not('lat', 'is', null)
       .then(({ data }) => setAllPlaces((data ?? []) as PlaceRanking[]))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterYear, filterMeal])
 
-  const filteredPlaces = filterGu === '전체'
-    ? allPlaces
-    : allPlaces.filter(p => p.sigungu === filterGu)
-
-  const filteredTotal = filteredPlaces.reduce((s, p) => s + (p.total_amount ?? 0), 0)
-
-  // 금액 변경 → 카운트업
+  // filteredTotal 변경 → 카운트업 애니메이션
   useEffect(() => {
     if (filteredTotal === 0) return
     animateTo(filteredTotal)
