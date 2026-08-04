@@ -86,36 +86,39 @@ export default function MapPage() {
     ? allPlaces
     : allPlaces.filter(p => p.sigungu === filterGu)
 
-  const filteredTotal = filteredPlaces.reduce((s, p) => s + (p.total_amount ?? 0), 0)
+  // 마지막으로 서버에서 확인된 실제 총액
+  const prevTotalRef = useRef(0)
 
-  // 항상 최신 filteredTotal을 ref에 보관 (필터 변경 직전 값 스냅용)
-  const filteredTotalRef = useRef(0)
-  filteredTotalRef.current = filteredTotal
-
-  // 연도·식사유형 필터 변경 → 진행 중 애니메이션 취소 + 이전 실제값으로 스냅 후 새 데이터 로드
+  // 마커용 장소 데이터 — 연도·식사유형만 서버 필터, 자치구는 client-side
   useEffect(() => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current)
-      rafRef.current = null
-    }
-    displayAmtRef.current = filteredTotalRef.current
-    tick()
-
     const params: Record<string, string | number> = {}
     if (filterYear !== '전체') params.p_year = Number(filterYear)
     if (filterMeal !== '전체') params.p_meal_type = filterMeal
     supabase
       .rpc('place_ranking', params)
       .not('lat', 'is', null)
+      .limit(10000)
       .then(({ data }) => setAllPlaces((data ?? []) as PlaceRanking[]))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterYear, filterMeal])
 
-  // filteredTotal 변경 → 카운트업 애니메이션
+  // 총액 배지 — 세 필터 모두 서버에서 정확히 합산
   useEffect(() => {
-    if (filteredTotal === 0) return
-    animateTo(filteredTotal)
-  }, [filteredTotal, animateTo])
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+    displayAmtRef.current = prevTotalRef.current
+    tick()
+
+    const params: Record<string, string | number> = {}
+    if (filterYear !== '전체') params.p_year     = Number(filterYear)
+    if (filterMeal !== '전체') params.p_meal_type = filterMeal
+    if (filterGu   !== '전체') params.p_sigungu   = filterGu
+    supabase.rpc('get_filtered_total', params).then(({ data }) => {
+      if (data !== null) {
+        prevTotalRef.current = Number(data)
+        animateTo(Number(data))
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterYear, filterMeal, filterGu])
 
   // 필터 변경 → 문구 갱신
   useEffect(() => {
