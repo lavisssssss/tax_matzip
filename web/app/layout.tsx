@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_KR, Hahmlet } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 import BottomNav from '@/components/BottomNav'
 
@@ -32,10 +31,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <body className={`${notoSansKr.className} ${hahmlet.variable}`}>
-        <Script
-          src={`https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`}
-          strategy="beforeInteractive"
-        />
         <div className="phone">
           {children}
           <BottomNav />

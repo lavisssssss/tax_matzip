@@ -113,21 +113,33 @@ export default function MapPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterYear, filterGu, filterMeal])
 
-  // ── 지도 초기화 ───────────────────────────────────────────
+  // ── 지도 초기화 (스크립트 동적 로딩 후 초기화) ───────────
   useEffect(() => {
     if (!mapRef.current) return
-    const init = () => {
-      if (!window.naver?.maps) return
+
+    const initMap = () => {
+      if (!mapRef.current) return
       naverMap.current = new window.naver.maps.Map(mapRef.current, {
         center: new window.naver.maps.LatLng(37.5665, 126.9780),
         zoom: 12,
         mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       })
     }
-    if (window.naver?.maps) { init() }
-    else {
-      const iv = setInterval(() => { if (window.naver?.maps) { init(); clearInterval(iv) } }, 200)
-      return () => clearInterval(iv)
+
+    if (window.naver?.maps) {
+      initMap()
+      return
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
+    const script = document.createElement('script')
+    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}`
+    script.async = true
+    script.onload = () => initMap()
+    document.head.appendChild(script)
+
+    return () => {
+      document.head.removeChild(script)
     }
   }, [])
 
