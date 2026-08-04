@@ -1,31 +1,34 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback, useReducer } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import type { PlaceRanking } from '@/lib/types'
 
-declare global {
-  interface Window {
-    naver: any
-  }
-}
-
-interface MapPlace {
-  place_id: number
-  name: string
-  lat: number
-  lng: number
-  sigungu: string | null
-  total_amount: number
-  visit_count: number
-}
+declare global { interface Window { naver: any } }
 
 const SEOUL_GU = [
   '종로구','중구','용산구','성동구','광진구','동대문구','중랑구','성북구',
   '강북구','도봉구','노원구','은평구','서대문구','마포구','양천구','강서구',
   '구로구','금천구','영등포구','동작구','관악구','서초구','강남구','송파구','강동구',
 ]
-
+const YEARS      = ['전체', '2026', '2025']
 const MEAL_TYPES = ['전체', '점심', '저녁']
+const DURATION   = 520
+
+const easeOutCubic = (p: number) => 1 - Math.pow(1 - p, 3)
+
+function buildLabel(year: string, gu: string, meal: string) {
+  const period = year !== '전체' ? `${year}년도` : '전체기간'
+  const region = gu   !== '전체' ? gu           : '서울시 기준'
+  const mealStr = meal !== '전체' ? ` ${meal}식사` : ''
+  return `${period} ${region}${mealStr} 업무추진비는`
+}
+
+function fmtAmt(n: number) {
+  return Math.round(n).toLocaleString('ko-KR')
+}
+
+type DropKey = 'year' | 'gu' | 'meal' | null
 
 export default function MapPage() {
   const mapRef   = useRef<HTMLDivElement>(null)
@@ -33,31 +36,84 @@ export default function MapPage() {
   const markers  = useRef<any[]>([])
   const router   = useRouter()
 
-  const [places,    setPlaces]    = useState<MapPlace[]>([])
-  const [totalAmt,  setTotalAmt]  = useState<number | null>(null)
-  const [filterGu,  setFilterGu]  = useState<string>('전체')
-  const [filterMeal,setFilterMeal]= useState<string>('전체')
-  const [showGu,    setShowGu]    = useState(false)
-  const [showMeal,  setShowMeal]  = useState(false)
+  const [allPlaces,  setAllPlaces]  = useState<PlaceRanking[]>([])
+  const [filterYear, setFilterYear] = useState('전체')
+  const [filterGu,   setFilterGu]   = useState('전체')
+  const [filterMeal, setFilterMeal] = useState('전체')
+  const [open,       setOpen]       = useState<DropKey>(null)
 
-  // 데이터 로드
-  useEffect(() => {
-    supabase
-      .from('v_place_ranking')
-      .select('place_id, name, lat, lng, sigungu, total_amount, visit_count')
-      .not('lat', 'is', null)
-      .then(({ data }) => {
-        setPlaces((data ?? []) as MapPlace[])
-      })
+  // ── 금액 카운트업 애니메이션 (인스턴스 변수 기반) ──────────
+  const displayAmtRef  = useRef(0)
+  const rafRef         = useRef<number | null>(null)
+  const animStartRef   = useRef(0)
+  const animFromRef    = useRef(0)
+  const animToRef      = useRef(0)
+  const [, tick]       = useReducer(x => x + 1, 0)   // forceUpdate
 
-    supabase
-      .rpc('get_expense_total')
-      .then(({ data }) => {
-        if (data) setTotalAmt(Number(data))
-      })
+  const animateTo = useCallback((target: number) => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    const from = displayAmtRef.current
+    animFromRef.current  = from
+    animToRef.current    = target
+    animStartRef.current = performance.now()
+
+    const step = (now: number) => {
+      const p      = Math.min((now - animStartRef.current) / DURATION, 1)
+      const eased  = easeOutCubic(p)
+      displayAmtRef.current = Math.round(animFromRef.current + (animToRef.current - animFromRef.current) * eased)
+      tick()
+      if (p < 1) { rafRef.current = requestAnimationFrame(step) }
+      else       { displayAmtRef.current = target; tick(); rafRef.current = null }
+    }
+    rafRef.current = requestAnimationFrame(step)
+  }, [tick])
+
+  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }, [])
+
+  // ── 문구 페이드 전환 ───────────────────────────────────────
+  const [labelText,    setLabelText]    = useState(buildLabel('전체', '전체', '전체'))
+  const [labelVisible, setLabelVisible] = useState(true)
+  const isFirstRender                   = useRef(true)
+  const pendingLabel                    = useRef(labelText)
+
+  const updateLabel = useCallback((next: string) => {
+    pendingLabel.current = next
+    setLabelVisible(false)
+    setTimeout(() => { setLabelText(pendingLabel.current); setLabelVisible(true) }, 250)
   }, [])
 
-  // 지도 초기화
+  // ── 필터 데이터 로드 ───────────────────────────────────────
+  useEffect(() => {
+    const params: Record<string, string | number> = {}
+    if (filterYear !== '전체') params.p_year = Number(filterYear)
+    if (filterMeal !== '전체') params.p_meal_type = filterMeal
+    supabase
+      .rpc('place_ranking', params)
+      .not('lat', 'is', null)
+      .then(({ data }) => setAllPlaces((data ?? []) as PlaceRanking[]))
+  }, [filterYear, filterMeal])
+
+  const filteredPlaces = filterGu === '전체'
+    ? allPlaces
+    : allPlaces.filter(p => p.sigungu === filterGu)
+
+  const filteredTotal = filteredPlaces.reduce((s, p) => s + (p.total_amount ?? 0), 0)
+
+  // 금액 변경 → 카운트업
+  useEffect(() => {
+    if (filteredTotal === 0) return
+    animateTo(filteredTotal)
+  }, [filteredTotal, animateTo])
+
+  // 필터 변경 → 문구 갱신
+  useEffect(() => {
+    const next = buildLabel(filterYear, filterGu, filterMeal)
+    if (isFirstRender.current) { setLabelText(next); isFirstRender.current = false; return }
+    if (next !== labelText) updateLabel(next)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterYear, filterGu, filterMeal])
+
+  // ── 지도 초기화 ───────────────────────────────────────────
   useEffect(() => {
     if (!mapRef.current) return
     const init = () => {
@@ -68,29 +124,20 @@ export default function MapPage() {
         mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       })
     }
-    if (window.naver?.maps) {
-      init()
-    } else {
-      const interval = setInterval(() => {
-        if (window.naver?.maps) { init(); clearInterval(interval) }
-      }, 200)
-      return () => clearInterval(interval)
+    if (window.naver?.maps) { init() }
+    else {
+      const iv = setInterval(() => { if (window.naver?.maps) { init(); clearInterval(iv) } }, 200)
+      return () => clearInterval(iv)
     }
   }, [])
 
-  // 마커 그리기
+  // ── 마커 ─────────────────────────────────────────────────
   useEffect(() => {
     if (!naverMap.current || !window.naver?.maps) return
-
     markers.current.forEach(m => m.setMap(null))
     markers.current = []
-
-    const filtered = places.filter(p => {
-      if (filterGu !== '전체' && p.sigungu !== filterGu) return false
-      return true
-    })
-
-    filtered.forEach(p => {
+    filteredPlaces.forEach(p => {
+      if (!p.lat || !p.lng) return
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(p.lat, p.lng),
         map: naverMap.current,
@@ -99,129 +146,115 @@ export default function MapPage() {
           anchor: new window.naver.maps.Point(5, 5),
         },
       })
-      window.naver.maps.Event.addListener(marker, 'click', () => {
-        router.push(`/place/${p.place_id}`)
-      })
+      window.naver.maps.Event.addListener(marker, 'click', () => router.push(`/place/${p.place_id}`))
       markers.current.push(marker)
     })
-  }, [places, filterGu, router])
+  }, [filteredPlaces, router])
 
-  const fmtAmt = (n: number) => {
-    if (n >= 100_000_000) return `${(n / 100_000_000).toFixed(1)}억원`
-    if (n >= 10_000) return `${Math.round(n / 10_000)}만원`
-    return `${n.toLocaleString()}원`
+  // ── 드롭다운 컴포넌트 ──────────────────────────────────────
+  const Dropdown = ({
+    id, label, value, options, onChange,
+  }: { id: DropKey; label: string; value: string; options: string[]; onChange: (v: string) => void }) => {
+    const active = value !== '전체'
+    return (
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <button
+          onClick={e => { e.stopPropagation(); setOpen(v => v === id ? null : id) }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '8px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+            background: active ? 'oklch(52% 0.095 180)' : 'white',
+            color: active ? 'white' : 'oklch(30% 0.015 265)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', border: 'none',
+          }}>
+          {active ? value : label}
+          {active
+            ? <span style={{ fontSize: 10 }} onClick={e => { e.stopPropagation(); onChange('전체'); setOpen(null) }}>✕</span>
+            : <span style={{ fontSize: 10 }}>▾</span>}
+        </button>
+        {open === id && (
+          <div style={{
+            position: 'absolute', top: '110%', left: 0, zIndex: 50,
+            background: 'white', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+            minWidth: 110, maxHeight: 260, overflowY: 'auto',
+          }}>
+            {options.map(opt => (
+              <button key={opt} onClick={() => { onChange(opt); setOpen(null) }} style={{
+                display: 'block', width: '100%', textAlign: 'left',
+                padding: '10px 16px', fontSize: 13,
+                fontWeight: value === opt ? 700 : 400,
+                color: value === opt ? 'oklch(52% 0.095 180)' : 'oklch(30% 0.015 265)',
+                background: 'none', border: 'none', cursor: 'pointer',
+              }}>{opt}</button>
+            ))}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}
+      onClick={() => setOpen(null)}>
+
       {/* 지도 */}
       <div ref={mapRef} style={{ position: 'absolute', inset: 0 }} />
 
-      {/* 상단 배지 + 필터 */}
+      {/* 상단 오버레이 */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
         padding: '58px 16px 10px', zIndex: 25,
         display: 'flex', flexDirection: 'column', gap: 10, boxSizing: 'border-box',
         pointerEvents: 'none',
       }}>
-        {/* 누적 금액 배지 */}
+
+        {/* 요약 바 */}
         <div style={{
-          background: 'oklch(52% 0.095 180)', borderRadius: 16, height: 48,
-          display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-          justifyContent: 'center', padding: '0 14px',
-          boxShadow: '0 6px 20px rgba(13,148,136,0.28)', pointerEvents: 'auto',
+          height: 48, borderRadius: 16, padding: '0 14px',
+          boxSizing: 'border-box', overflow: 'hidden',
+          background: 'oklch(52% 0.095 180)',
+          boxShadow: '0 6px 20px rgba(13,148,136,0.28)',
+          display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', alignItems: 'flex-start',
+          pointerEvents: 'auto',
         }}>
-          <span style={{ fontSize: 10.5, fontWeight: 600, color: 'rgba(255,255,255,0.82)' }}>
-            2025.07 ~ 현재 누적
+          {/* 문구 — 페이드+슬라이드 */}
+          <span style={{
+            fontSize: 10.5, fontWeight: 600, lineHeight: 1.25,
+            color: 'rgba(255,255,255,0.82)', whiteSpace: 'nowrap',
+            opacity: labelVisible ? 1 : 0,
+            transform: labelVisible ? 'translateY(0)' : 'translateY(-5px)',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+          }}>
+            {labelText}
           </span>
-          <span style={{ fontSize: 15.5, fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>
-            {totalAmt ? fmtAmt(totalAmt) : '집계 중...'}
+          {/* 금액 — 카운트업 */}
+          <span style={{
+            fontSize: 15.5, fontWeight: 800, lineHeight: 1.3,
+            letterSpacing: '-0.3px', color: 'white', whiteSpace: 'nowrap',
+          }}>
+            총 {fmtAmt(displayAmtRef.current)}원입니다
           </span>
         </div>
 
         {/* 필터 칩 */}
-        <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto', position: 'relative' }}>
-          {/* 자치구 필터 */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => { setShowGu(v => !v); setShowMeal(false) }}
-              style={{
-                padding: '8px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-                background: filterGu !== '전체' ? 'oklch(52% 0.095 180)' : 'white',
-                color: filterGu !== '전체' ? 'white' : 'oklch(30% 0.015 265)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer',
-                border: 'none', flexShrink: 0,
-              }}>
-              {filterGu === '전체' ? '자치구 ▾' : `${filterGu} ✕`}
-            </button>
-            {showGu && (
-              <div style={{
-                position: 'absolute', top: '110%', left: 0, zIndex: 50,
-                background: 'white', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                maxHeight: 260, overflowY: 'auto', minWidth: 130,
-              }}>
-                {['전체', ...SEOUL_GU].map(gu => (
-                  <button key={gu} onClick={() => { setFilterGu(gu); setShowGu(false) }}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'left',
-                      padding: '10px 16px', fontSize: 13, fontWeight: filterGu === gu ? 700 : 400,
-                      color: filterGu === gu ? 'oklch(52% 0.095 180)' : 'oklch(30% 0.015 265)',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                    }}>{gu}</button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 식사유형 필터 */}
-          <div style={{ position: 'relative' }}>
-            <button
-              onClick={() => { setShowMeal(v => !v); setShowGu(false) }}
-              style={{
-                padding: '8px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-                background: filterMeal !== '전체' ? 'oklch(52% 0.095 180)' : 'white',
-                color: filterMeal !== '전체' ? 'white' : 'oklch(30% 0.015 265)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer',
-                border: 'none', flexShrink: 0,
-              }}>
-              {filterMeal === '전체' ? '식사유형 ▾' : `${filterMeal} ✕`}
-            </button>
-            {showMeal && (
-              <div style={{
-                position: 'absolute', top: '110%', left: 0, zIndex: 50,
-                background: 'white', borderRadius: 12, boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                minWidth: 110,
-              }}>
-                {MEAL_TYPES.map(m => (
-                  <button key={m} onClick={() => { setFilterMeal(m); setShowMeal(false) }}
-                    style={{
-                      display: 'block', width: '100%', textAlign: 'left',
-                      padding: '10px 16px', fontSize: 13, fontWeight: filterMeal === m ? 700 : 400,
-                      color: filterMeal === m ? 'oklch(52% 0.095 180)' : 'oklch(30% 0.015 265)',
-                      background: 'none', border: 'none', cursor: 'pointer',
-                    }}>{m}</button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button style={{
-            padding: '8px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-            background: 'white', color: 'oklch(30% 0.015 265)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', border: 'none', flexShrink: 0,
-          }}>기간 ▾</button>
+        <div style={{ display: 'flex', gap: 8, pointerEvents: 'auto' }}
+          onClick={e => e.stopPropagation()}>
+          <Dropdown id="year" label="연도"    value={filterYear} options={YEARS}                 onChange={setFilterYear} />
+          <Dropdown id="gu"   label="자치구"  value={filterGu}   options={['전체', ...SEOUL_GU]} onChange={setFilterGu}   />
+          <Dropdown id="meal" label="식사유형" value={filterMeal} options={MEAL_TYPES}            onChange={setFilterMeal} />
         </div>
       </div>
 
-      {/* 마커 수 표시 */}
-      {places.length > 0 && (
+      {/* 마커 수 */}
+      {filteredPlaces.length > 0 && (
         <div style={{
           position: 'absolute', bottom: 90, right: 16, zIndex: 25,
           background: 'rgba(255,255,255,0.92)', borderRadius: 20, padding: '6px 12px',
           fontSize: 12, fontWeight: 600, color: 'oklch(40% 0.012 265)',
           boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
         }}>
-          {filterGu === '전체' ? places.length : places.filter(p => p.sigungu === filterGu).length}개 식당
+          {filteredPlaces.length}개 식당
         </div>
       )}
     </div>
