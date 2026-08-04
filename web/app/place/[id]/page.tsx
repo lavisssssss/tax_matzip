@@ -55,7 +55,7 @@ export default function PlaceDetailPage() {
         .eq('place_id', Number(id)).order('used_at', { ascending: false }).limit(50),
     ]).then(([{ data: p }, { data: v }]) => {
       setPlace(p as PlaceDetail)
-      setVisits((v ?? []) as VisitEntry[])
+      setVisits((v ?? []) as unknown as VisitEntry[])
       setLoading(false)
     })
   }, [id])
