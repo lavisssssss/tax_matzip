@@ -149,6 +149,8 @@ def _get(url, params):
     if resp.status_code == 429:
         time.sleep(3)
         resp = requests.get(url, headers=HEADERS, params=params, timeout=10)
+    if resp.status_code == 400:
+        return {}          # 쿼리 오류(너무 길거나 외국 주소) → not_found 처리
     resp.raise_for_status()
     return resp.json()
 
@@ -161,6 +163,9 @@ def search_keyword(query, gu=None):
     params = {"query": query, "size": 5}
     if gu:
         params["query"] = f"{gu} {query}"
+    # 카카오 API 쿼리 최대 길이 제한 (외국 주소 등 비정상 입력 방어)
+    if len(params["query"]) > 80:
+        params["query"] = params["query"][:80]
     # 음식점(FD6) / 카페(CE7) 로 좁히면 정확도가 오르지만,
     # 마트·편의점 사용 사례도 있으므로 카테고리 제한은 걸지 않는다
     return _get(KEYWORD_URL, {**params}).get("documents", [])
