@@ -148,7 +148,7 @@ export default function MapPage() {
 
     const clientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
     const script = document.createElement('script')
-    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${clientId}&ncpKeyType=ncp`
+    script.src = `https://openapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}&ncpKeyType=ncp`
     script.async = true
     script.onload = () => initMap()
     document.head.appendChild(script)
