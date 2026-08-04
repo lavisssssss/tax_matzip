@@ -16,6 +16,8 @@ const MEAL_TYPES = ['전체', '점심', '저녁']
 const DURATION   = 520
 const PEEK_H     = 152   // 핸들(28) + 헤더(52) + 첫 카드 일부(72)
 
+type Bounds = { swLat: number; swLng: number; neLat: number; neLng: number }
+
 const easeOutCubic = (p: number) => 1 - Math.pow(1 - p, 3)
 
 function buildLabel(year: string, gu: string, meal: string) {
@@ -73,7 +75,9 @@ export default function MapPage() {
   const [filterGu,   setFilterGu]   = useState('전체')
   const [filterMeal, setFilterMeal] = useState('전체')
   const [open,       setOpen]       = useState<DropKey>(null)
-  const [sheetOpen,  setSheetOpen]  = useState(false)
+  const [sheetOpen,   setSheetOpen]   = useState(false)
+  const [mapMoved,    setMapMoved]    = useState(false)
+  const [boundsFilter, setBoundsFilter] = useState<Bounds | null>(null)
 
   // ── 금액 카운트업 애니메이션 ──────────────────────────────────
   const displayAmtRef = useRef(0)
@@ -117,6 +121,24 @@ export default function MapPage() {
   const filteredPlaces = filterGu === '전체'
     ? allPlaces
     : allPlaces.filter(p => p.sigungu === filterGu)
+
+  // 바텀시트 목록 — bounds 필터 추가 적용 (마커는 filteredPlaces 그대로)
+  const sheetPlaces = boundsFilter
+    ? filteredPlaces.filter(p =>
+        p.lat !== null && p.lng !== null &&
+        p.lat >= boundsFilter.swLat && p.lat <= boundsFilter.neLat &&
+        p.lng >= boundsFilter.swLng && p.lng <= boundsFilter.neLng
+      )
+    : filteredPlaces
+
+  const applyBoundsFilter = useCallback(() => {
+    if (!naverMap.current) return
+    const b  = naverMap.current.getBounds()
+    const sw = b.getSW()
+    const ne = b.getNE()
+    setBoundsFilter({ swLat: sw.lat(), swLng: sw.lng(), neLat: ne.lat(), neLng: ne.lng() })
+    setMapMoved(false)
+  }, [])
 
   const prevTotalRef = useRef(0)
 
@@ -164,6 +186,10 @@ export default function MapPage() {
         center: new window.naver.maps.LatLng(37.5665, 126.9780),
         zoom: 12,
         mapTypeId: window.naver.maps.MapTypeId.NORMAL,
+      })
+      // 지도 이동/줌 완료 시 버튼 표시
+      window.naver.maps.Event.addListener(naverMap.current, 'idle', () => {
+        setMapMoved(true)
       })
     }
     if (window.naver?.maps) { initMap(); return }
@@ -240,9 +266,11 @@ export default function MapPage() {
     )
   }
 
-  const regionLabel = filterGu !== '전체'
-    ? `${filterGu} ${filteredPlaces.length}곳`
-    : `서울시 전체 ${filteredPlaces.length}곳`
+  const regionLabel = boundsFilter
+    ? `현 지도 ${sheetPlaces.length}곳`
+    : filterGu !== '전체'
+      ? `${filterGu} ${sheetPlaces.length}곳`
+      : `서울시 전체 ${sheetPlaces.length}곳`
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}
@@ -291,8 +319,40 @@ export default function MapPage() {
           <Dropdown id="year" label="연도"    value={filterYear} options={YEARS}                 onChange={setFilterYear} />
           <Dropdown id="gu"   label="자치구"  value={filterGu}   options={['전체', ...SEOUL_GU]} onChange={setFilterGu}   />
           <Dropdown id="meal" label="식사유형" value={filterMeal} options={MEAL_TYPES}            onChange={setFilterMeal} />
+          {boundsFilter && (
+            <button
+              onClick={() => setBoundsFilter(null)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                padding: '8px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+                background: 'oklch(52% 0.095 180)', color: 'white',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', border: 'none',
+              }}>
+              지도범위 <span style={{ fontSize: 10 }}>✕</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* 현 지도에서 조회 버튼 — 지도 이동 후 표시 */}
+      {mapMoved && (
+        <button
+          onClick={() => { applyBoundsFilter(); setOpen(null) }}
+          style={{
+            position: 'absolute',
+            bottom: 80 + PEEK_H + 16,
+            left: '50%', transform: 'translateX(-50%)',
+            zIndex: 31,
+            padding: '10px 18px', borderRadius: 24,
+            background: 'oklch(22% 0.015 265)', color: 'white',
+            fontSize: 13, fontWeight: 700,
+            border: 'none', cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.22)',
+            whiteSpace: 'nowrap',
+          }}>
+          현 지도에서 조회
+        </button>
+      )}
 
       {/* ── 바텀시트 ────────────────────────────────────────────
           z-index:30 (지도 위, 네비 z-index:40 아래)
@@ -335,7 +395,7 @@ export default function MapPage() {
 
         {/* 스크롤 목록 — flex:1, overflow-y:auto */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
-          {filteredPlaces.map((p, i) => (
+          {sheetPlaces.map((p, i) => (
             <div
               key={p.place_id}
               onClick={() => router.push(`/place/${p.place_id}`)}
