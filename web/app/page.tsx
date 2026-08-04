@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState, useCallback, useReducer } from 'react'
+import { useEffect, useRef, useState, useCallback, useReducer, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { PlaceRanking } from '@/lib/types'
@@ -157,17 +157,21 @@ export default function MapPage() {
   useEffect(() => { goToPlaceRef.current = goToPlace }, [goToPlace])
 
   // ── 파생 상태 ────────────────────────────────────────────────
-  const filteredPlaces = filterGu === '전체'
-    ? allPlaces
-    : allPlaces.filter(p => p.sigungu === filterGu)
+  const filteredPlaces = useMemo(() =>
+    filterGu === '전체' ? allPlaces : allPlaces.filter(p => p.sigungu === filterGu),
+    [allPlaces, filterGu],
+  )
 
-  const sheetPlaces = boundsFilter
-    ? filteredPlaces.filter(p =>
-        p.lat !== null && p.lng !== null &&
-        p.lat >= boundsFilter.swLat && p.lat <= boundsFilter.neLat &&
-        p.lng >= boundsFilter.swLng && p.lng <= boundsFilter.neLng
-      )
-    : filteredPlaces
+  const sheetPlaces = useMemo(() =>
+    boundsFilter
+      ? filteredPlaces.filter(p =>
+          p.lat !== null && p.lng !== null &&
+          p.lat >= boundsFilter.swLat && p.lat <= boundsFilter.neLat &&
+          p.lng >= boundsFilter.swLng && p.lng <= boundsFilter.neLng
+        )
+      : filteredPlaces,
+    [filteredPlaces, boundsFilter],
+  )
 
   const applyBoundsFilter = useCallback(() => {
     if (!naverMap.current) return
@@ -188,7 +192,9 @@ export default function MapPage() {
       .then(({ data }) => setAllPlaces((data ?? []) as PlaceRanking[]))
   }, [filterYear, filterMeal])
 
+  // 서버 총액 — bounds 모드가 아닐 때만 동작
   useEffect(() => {
+    if (boundsFilter) return
     if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
     displayAmtRef.current = prevTotalRef.current; tick()
     const params: Record<string, string | number> = {}
@@ -199,14 +205,25 @@ export default function MapPage() {
       if (data !== null) { prevTotalRef.current = Number(data); animateTo(Number(data)) }
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterYear, filterMeal, filterGu])
+  }, [filterYear, filterMeal, filterGu, boundsFilter])
+
+  // bounds 모드 총액 — 뷰포트 안 장소의 total_amount 합산 (클라이언트)
+  useEffect(() => {
+    if (!boundsFilter) return
+    const total = sheetPlaces.reduce((s, p) => s + (p.total_amount || 0), 0)
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); rafRef.current = null }
+    displayAmtRef.current = prevTotalRef.current; tick()
+    prevTotalRef.current = total
+    animateTo(total)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [boundsFilter, sheetPlaces])
 
   useEffect(() => {
-    const next = buildLabel(filterYear, filterGu, filterMeal)
+    const next = boundsFilter ? '현 지도상 업무추진비는' : buildLabel(filterYear, filterGu, filterMeal)
     if (isFirstRender.current) { setLabelText(next); isFirstRender.current = false; return }
     if (next !== labelText) updateLabel(next)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterYear, filterGu, filterMeal])
+  }, [filterYear, filterGu, filterMeal, boundsFilter])
 
   // ── 지도 초기화 ──────────────────────────────────────────────
   useEffect(() => {
@@ -367,11 +384,11 @@ export default function MapPage() {
           <Dropdown id="meal" label="식사유형" value={filterMeal} options={MEAL_TYPES}            onChange={setFilterMeal} />
           {boundsFilter && (
             <button onClick={() => setBoundsFilter(null)} style={{
-              display: 'flex', alignItems: 'center', gap: 4,
-              padding: '8px 12px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              background: 'oklch(52% 0.095 180)', color: 'white',
+              display: 'flex', alignItems: 'center', gap: 3,
+              padding: '8px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
+              background: 'rgba(255,255,255,0.9)', color: 'oklch(40% 0.012 265)',
               boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', border: 'none',
-            }}>지도범위 <span style={{ fontSize: 10 }}>✕</span></button>
+            }}>지도범위 해제 <span style={{ fontSize: 10 }}>✕</span></button>
           )}
         </div>
       </div>

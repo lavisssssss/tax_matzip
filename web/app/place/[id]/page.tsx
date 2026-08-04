@@ -135,11 +135,16 @@ export default function PlaceDetailPage() {
                   )}
                   {sourceUrl && (
                     <a href={sourceUrl} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'flex', alignItems: 'center', color: 'oklch(62% 0.015 265)', textDecoration: 'none' }}
-                      title="원문 보기">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M6 2H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                        <path d="M8 1h5v5M13 1L7 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '4px 10px', borderRadius: 8,
+                        background: 'oklch(94% 0.03 180)', color: 'oklch(40% 0.095 180)',
+                        textDecoration: 'none', fontSize: 12, fontWeight: 600,
+                      }}>
+                      원문 보기
+                      <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                        <path d="M6 2H2a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                        <path d="M8 1h5v5M13 1L7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </a>
                   )}
