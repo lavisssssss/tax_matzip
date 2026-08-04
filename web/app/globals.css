@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-teal: oklch(52% 0.095 180);
+  --color-teal-light: oklch(94% 0.03 180);
+  --font-sans: 'Noto Sans KR', -apple-system, system-ui, sans-serif;
+  --font-serif: var(--font-hahmlet), serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar { display: none; }
+
+body {
+  background: oklch(90% 0.006 285);
+  font-family: var(--font-sans);
+  color: oklch(22% 0.015 265);
+}
+
+.serif { font-family: var(--font-serif); }
+
+.phone {
+  max-width: 390px;
+  width: 100%;
+  height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: oklch(96.5% 0.005 285);
+  box-shadow: 0 0 60px rgba(0,0,0,0.2);
+}

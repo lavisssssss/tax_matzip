@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com"></link>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"></link>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Hahmlet:wght@500;600;700;800&display=swap"></link>
+  <style>
+    body{margin:0;}
+    *::-webkit-scrollbar{width:0;height:0;display:none;}
+    *{scrollbar-width:none;-ms-overflow-style:none;}
+    [data-om-starter="ios-frame"], [data-om-starter="ios-frame"] *{font-family:'Noto Sans KR',-apple-system,system-ui,sans-serif;}
+    [data-om-starter="ios-frame"] h1, [data-om-starter="ios-frame"] .serif{font-family:'Hahmlet',serif;}
+    @keyframes locPulse{0%{box-shadow:0 0 0 0 rgba(196,72,45,0.45)}70%{box-shadow:0 0 0 16px rgba(196,72,45,0)}100%{box-shadow:0 0 0 0 rgba(196,72,45,0)}}
+    a{color:oklch(56% 0.19 35);}
+    a:hover{color:oklch(46% 0.17 35);}
+  </style>
+</helmet>
+<div style="display:flex;justify-content:center;padding:44px 20px;background:oklch(92% 0.008 75);min-height:932px;box-sizing:border-box;font-family:'Noto Sans KR',-apple-system,system-ui,sans-serif;">
+  <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" width="{{ 390 }}" height="{{ 844 }}" hint-size="390,844">
+
+    <sc-if value="{{ isOnboarding }}" hint-placeholder-val="{{ true }}">
+      <div style="width:390px;height:844px;position:relative;background:linear-gradient(180deg, oklch(95% 0.035 45) 0%, oklch(97% 0.012 75) 60%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 36px;box-sizing:border-box;text-align:center;">
+        <div style="width:84px;height:84px;border-radius:22px;background:oklch(56% 0.19 35);display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 16px 30px rgba(196,72,45,0.28);">
+          <span class="serif" style="font-family:'Hahmlet',serif;font-size:34px;font-weight:800;color:white;">세</span>
+        </div>
+        <h1 style="font-family:'Hahmlet',serif;font-size:30px;font-weight:800;color:oklch(22% 0.02 50);margin:0 0 10px;letter-spacing:-0.5px;">세금맛집</h1>
+        <p style="font-size:15.5px;line-height:1.65;color:oklch(40% 0.02 50);margin:0 0 6px;font-weight:600;">서울시 업무추진비 기반 식당 검색 사이트</p>
+        <p style="font-size:14px;line-height:1.65;color:oklch(55% 0.02 50);margin:0 0 40px;">공무원들이 자주 찾는 식당을 지도로 알려드려요</p>
+        <button onClick="{{ startApp }}" style="width:100%;max-width:260px;height:54px;border:none;border-radius:27px;background:oklch(56% 0.19 35);color:white;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;">지도에서 둘러보기</button>
+        <p style="margin-top:18px;font-size:12.5px;color:oklch(65% 0.015 50);letter-spacing:0.3px;">Made by ohsun</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMap }}" hint-placeholder-val="{{ false }}">
+      <div style="width:390px;height:844px;position:relative;overflow:hidden;background:oklch(94% 0.02 155);">
+        <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(120deg, oklch(96% 0.015 155) 0px, oklch(96% 0.015 155) 40px, oklch(93% 0.02 155) 40px, oklch(93% 0.02 155) 80px);"></div>
+        <div style="position:absolute;left:0;top:34%;width:100%;height:10px;background:oklch(98% 0.006 90);opacity:0.7;transform:rotate(-6deg);"></div>
+        <div style="position:absolute;left:0;top:58%;width:100%;height:8px;background:oklch(98% 0.006 90);opacity:0.6;transform:rotate(4deg);"></div>
+        <div style="position:absolute;left:15%;top:0;width:7px;height:100%;background:oklch(98% 0.006 90);opacity:0.55;transform:rotate(10deg);"></div>
+        <div style="position:absolute;left:50%;top:172px;transform:translateX(-50%);font-family:monospace;font-size:11px;color:oklch(45% 0.02 155);opacity:0.4;letter-spacing:0.5px;">— 지도 SDK 연동 영역 —</div>
+
+        <sc-for list="{{ mapMarkers }}" as="m" hint-placeholder-count="8">
+          <div onClick="{{ m.onClick }}" style="position:absolute;left:{{ m.left }};top:{{ m.top }};width:{{ m.size }}px;height:{{ m.size }}px;margin-left:{{ m.halfSize }}px;margin-top:{{ m.halfSize }}px;border-radius:50%;background:oklch(56% 0.19 35);border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;cursor:pointer;z-index:5;">{{ m.label }}</div>
+        </sc-for>
+
+        <div style="position:absolute;top:0;left:0;right:0;padding:58px 16px 10px;z-index:25;display:flex;flex-direction:column;gap:10px;box-sizing:border-box;">
+          <div style="background:white;border-radius:16px;height:48px;display:flex;align-items:center;padding:0 14px;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,0.12);box-sizing:border-box;">
+            <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0;">
+              <circle cx="8" cy="8" r="6" fill="none" stroke="oklch(55% 0.02 50)" stroke-width="2"></circle>
+              <line x1="12.2" y1="12.2" x2="17" y2="17" stroke="oklch(55% 0.02 50)" stroke-width="2" stroke-linecap="round"></line>
+            </svg>
+            <input type="text" placeholder="식당 이름으로 검색" value="{{ search }}" onChange="{{ setSearch }}" style="border:none;outline:none;flex:1;font-size:15px;font-family:inherit;color:oklch(22% 0.02 50);background:transparent;"></input>
+          </div>
+          <div style="display:flex;gap:8px;overflow-x:auto;">
+            <sc-for list="{{ filterCategories }}" as="cat" hint-placeholder-count="4">
+              <div onClick="{{ cat.onClick }}" style="flex-shrink:0;padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;background:{{ cat.bg }};color:{{ cat.color }};box-shadow:0 2px 8px rgba(0,0,0,0.08);">{{ cat.label }} ▾</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ showFilterOptions }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;overflow-x:auto;">
+              <sc-for list="{{ filterOptions }}" as="opt" hint-placeholder-count="4">
+                <div onClick="{{ opt.onClick }}" style="flex-shrink:0;padding:7px 13px;border-radius:16px;font-size:12.5px;font-weight:500;white-space:nowrap;cursor:pointer;background:{{ opt.bg }};color:{{ opt.color }};">{{ opt.value }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ showGuDropdown }}" hint-placeholder-val="{{ false }}">
+            <div style="background:white;border-radius:16px;box-shadow:0 12px 28px rgba(0,0,0,0.16);max-height:320px;overflow-y:auto;padding:6px 0;">
+              <sc-for list="{{ guOptions }}" as="opt" hint-placeholder-count="8">
+                <div onClick="{{ opt.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;background:{{ opt.rowBg }};color:{{ opt.rowColor }};">
+                  <span>{{ opt.value }}</span>
+                  <svg width="14" height="11" viewBox="0 0 14 11"><path d="M1 5.5L5 9.5L13 1.5" stroke="{{ opt.checkColor }}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <div onClick="{{ hitLocation }}" style="position:absolute;right:16px;bottom:206px;width:48px;height:48px;border-radius:50%;background:white;box-shadow:0 6px 16px rgba(0,0,0,0.18);display:flex;align-items:center;justify-content:center;z-index:15;cursor:pointer;animation:{{ locPulse }};">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <circle cx="10" cy="10" r="3" fill="oklch(56% 0.19 35)"></circle>
+            <circle cx="10" cy="10" r="7.5" fill="none" stroke="oklch(56% 0.19 35)" stroke-width="1.6"></circle>
+          </svg>
+        </div>
+
+        <div style="position:absolute;left:0;right:0;top:170px;height:594px;background:white;border-radius:24px 24px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,0.12);z-index:20;display:flex;flex-direction:column;box-sizing:border-box;transform:translateY({{ sheetTranslateY }}px);transition:{{ sheetTransition }};">
+          <div onPointerDown="{{ handleSheetDown }}" style="padding-top:10px;display:flex;flex-direction:column;align-items:center;cursor:grab;flex-shrink:0;">
+            <div style="width:40px;height:5px;border-radius:3px;background:oklch(88% 0.012 60);margin-bottom:12px;"></div>
+            <div style="width:100%;padding:0 20px 12px;box-sizing:border-box;">
+              <span style="font-size:17px;font-weight:700;color:oklch(22% 0.02 50);">{{ areaCountLabel }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ sheetExpanded }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:6px;padding:0 16px 10px;border-bottom:1px solid oklch(92% 0.012 60);flex-shrink:0;">
+              <sc-for list="{{ sortOptions }}" as="opt" hint-placeholder-count="3">
+                <div onClick="{{ opt.onClick }}" style="padding:6px 12px;border-radius:14px;font-size:12.5px;font-weight:600;cursor:pointer;background:{{ opt.bg }};color:{{ opt.color }};">{{ opt.label }}</div>
+              </sc-for>
+            </div>
+            <div ref="{{ setListRef }}" style="flex:1;overflow-y:auto;padding:10px 16px 24px;box-sizing:border-box;">
+              <sc-for list="{{ sheetList }}" as="item" hint-placeholder-count="6">
+                <div ref="{{ item.setRef }}" onClick="{{ item.onClick }}" style="background:{{ item.cardBg }};border:1.5px solid {{ item.cardBorder }};border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:background 0.3s,border-color 0.3s;box-sizing:border-box;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <span class="serif" style="font-family:'Hahmlet',serif;font-size:16.5px;font-weight:700;color:oklch(22% 0.02 50);">{{ item.name }}</span>
+                    <span style="font-size:12px;color:oklch(55% 0.02 50);background:oklch(94% 0.01 60);padding:2px 8px;border-radius:10px;">{{ item.gu }}</span>
+                  </div>
+                  <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+                    <sc-for list="{{ item.deptTags }}" as="dept" hint-placeholder-count="2">
+                      <span style="font-size:11.5px;color:oklch(48% 0.02 50);background:oklch(97% 0.008 75);border:1px solid oklch(90% 0.014 60);padding:2px 8px;border-radius:10px;">{{ dept }}</span>
+                    </sc-for>
+                    <sc-if value="{{ item.hasExtraDepts }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:11.5px;color:oklch(60% 0.015 50);">+{{ item.extraDepts }}</span>
+                    </sc-if>
+                    <span style="font-size:12px;color:oklch(60% 0.015 50);">· {{ item.purpose }}</span>
+                  </div>
+                  <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+                    <div style="font-size:12.5px;color:oklch(50% 0.02 50);line-height:1.5;">방문 {{ item.visitsLabel }} · {{ item.maxPeopleLabel }}<br></br>최근 {{ item.lastLabel }}</div>
+                    <div style="text-align:right;">
+                      <div style="font-size:17px;font-weight:800;color:oklch(30% 0.02 50);">1인당 {{ item.avgLabel }}</div>
+                      <div style="display:inline-block;margin-top:3px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;background:{{ item.badgeBg }};color:{{ item.badgeColor }};">{{ item.badgeText }}</div>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;background:rgba(255,255,255,0.97);border-top:1px solid oklch(90% 0.014 60);display:flex;z-index:40;padding-bottom:20px;box-sizing:border-box;">
+          <div onClick="{{ goMap }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2C6.7 2 4 4.7 4 8c0 4.5 6 10 6 10s6-5.5 6-10c0-3.3-2.7-6-6-6z" fill="none" stroke="{{ tabMapColor }}" stroke-width="1.8"></path><circle cx="10" cy="8" r="2.2" fill="{{ tabMapColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabMapColor }};">지도</span>
+          </div>
+          <div onClick="{{ goRanking }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="11" width="4" height="7" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="8" y="6" width="4" height="12" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="14" y="2" width="4" height="16" rx="1" fill="{{ tabRankingColor }}"></rect></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabRankingColor }};">랭킹</span>
+          </div>
+          <div onClick="{{ goInfo }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="{{ tabInfoColor }}" stroke-width="1.8"></circle><rect x="9" y="9" width="2" height="5.5" rx="1" fill="{{ tabInfoColor }}"></rect><circle cx="10" cy="6" r="1.2" fill="{{ tabInfoColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabInfoColor }};">정보</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRanking }}" hint-placeholder-val="{{ false }}">
+      <div style="width:390px;height:844px;position:relative;overflow:hidden;background:oklch(97% 0.012 75);display:flex;flex-direction:column;box-sizing:border-box;">
+        <div style="padding:58px 20px 16px;flex-shrink:0;">
+          <h1 style="font-family:'Hahmlet',serif;font-size:26px;font-weight:800;color:oklch(22% 0.02 50);margin:0 0 4px;">랭킹</h1>
+          <p style="font-size:13px;color:oklch(58% 0.015 50);margin:0 0 12px;">{{ rankSubtitle }}</p>
+          <div onClick="{{ toggleRankGu }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:white;border:1px solid oklch(90% 0.014 60);font-size:13px;font-weight:600;color:oklch(30% 0.02 50);cursor:pointer;">
+            <span>{{ rankGuLabel }}</span>
+            <svg width="10" height="6" viewBox="0 0 10 6"><path d="M1 1L5 5L9 1" stroke="oklch(45% 0.02 50)" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+        </div>
+        <sc-if value="{{ rankGuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:150px;left:20px;width:200px;background:white;border-radius:16px;box-shadow:0 12px 28px rgba(0,0,0,0.18);max-height:320px;overflow-y:auto;padding:6px 0;z-index:50;">
+            <sc-for list="{{ rankGuOptions }}" as="opt" hint-placeholder-count="6">
+              <div onClick="{{ opt.onClick }}" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;font-size:14px;font-weight:500;cursor:pointer;background:{{ opt.rowBg }};color:{{ opt.rowColor }};">
+                <span>{{ opt.value }}</span>
+                <svg width="14" height="11" viewBox="0 0 14 11"><path d="M1 5.5L5 9.5L13 1.5" stroke="{{ opt.checkColor }}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:4px;padding:0 20px 10px;flex-shrink:0;">
+          <sc-for list="{{ rankTabs }}" as="tab" hint-placeholder-count="3">
+            <div onClick="{{ tab.onClick }}" style="flex:1;text-align:center;padding:10px 4px;font-size:13px;font-weight:700;cursor:pointer;color:{{ tab.color }};border-bottom:2.5px solid {{ tab.borderColor }};">{{ tab.label }}</div>
+          </sc-for>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding-bottom:96px;box-sizing:border-box;">
+          <sc-for list="{{ rankingList }}" as="item" hint-placeholder-count="10">
+            <div onClick="{{ item.onClick }}" style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid oklch(92% 0.012 60);cursor:pointer;">
+              <div style="width:32px;height:32px;border-radius:50%;background:{{ item.badgeBg }};color:{{ item.badgeColor }};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">{{ item.rank }}</div>
+              <div style="flex:1;">
+                <div class="serif" style="font-family:'Hahmlet',serif;font-size:15.5px;font-weight:700;color:oklch(22% 0.02 50);">{{ item.name }}</div>
+                <div style="font-size:12.5px;color:oklch(58% 0.015 50);margin-top:2px;">{{ item.gu }}</div>
+              </div>
+              <div style="font-size:15px;font-weight:800;color:oklch(30% 0.02 50);">{{ item.metric }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;background:rgba(255,255,255,0.97);border-top:1px solid oklch(90% 0.014 60);display:flex;z-index:40;padding-bottom:20px;box-sizing:border-box;">
+          <div onClick="{{ goMap }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2C6.7 2 4 4.7 4 8c0 4.5 6 10 6 10s6-5.5 6-10c0-3.3-2.7-6-6-6z" fill="none" stroke="{{ tabMapColor }}" stroke-width="1.8"></path><circle cx="10" cy="8" r="2.2" fill="{{ tabMapColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabMapColor }};">지도</span>
+          </div>
+          <div onClick="{{ goRanking }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="11" width="4" height="7" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="8" y="6" width="4" height="12" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="14" y="2" width="4" height="16" rx="1" fill="{{ tabRankingColor }}"></rect></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabRankingColor }};">랭킹</span>
+          </div>
+          <div onClick="{{ goInfo }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="{{ tabInfoColor }}" stroke-width="1.8"></circle><rect x="9" y="9" width="2" height="5.5" rx="1" fill="{{ tabInfoColor }}"></rect><circle cx="10" cy="6" r="1.2" fill="{{ tabInfoColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabInfoColor }};">정보</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isInfo }}" hint-placeholder-val="{{ false }}">
+      <div style="width:390px;height:844px;position:relative;overflow:hidden;background:oklch(97% 0.012 75);display:flex;flex-direction:column;box-sizing:border-box;">
+        <div style="padding:58px 20px 8px;flex-shrink:0;">
+          <h1 style="font-family:'Hahmlet',serif;font-size:26px;font-weight:800;color:oklch(22% 0.02 50);margin:0;">정보</h1>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:8px 20px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px;">
+          <div>
+            <h2 style="font-size:14px;font-weight:700;color:oklch(56% 0.19 35);margin:0 0 8px;">이 서비스는 무엇인가요?</h2>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0;">서울시 4급 이상 간부 공무원이 업무추진비로 결제한 식당 내역을 지도로 보여드려요. 감시가 목적이 아니라, 공무원들도 자주 찾는 '진짜 맛집'을 알려드리는 서비스예요.</p>
+          </div>
+          <div>
+            <h2 style="font-size:14px;font-weight:700;color:oklch(56% 0.19 35);margin:0 0 8px;">데이터 출처</h2>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0 0 6px;">· 서울특별시 정보공개청구 회신 자료</p>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0 0 6px;">· 서울시 업무추진비 공개 내역 (본청 · 사업소)</p>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0;">· 대상: 4급 이상 간부, 간담회비 · 부서운영비</p>
+          </div>
+          <div>
+            <h2 style="font-size:14px;font-weight:700;color:oklch(56% 0.19 35);margin:0 0 8px;">데이터 기준</h2>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0;">2026년 1월 ~ 7월 결제 건 기준으로 집계했어요. 매월 갱신됩니다.</p>
+          </div>
+          <div>
+            <h2 style="font-size:14px;font-weight:700;color:oklch(56% 0.19 35);margin:0 0 8px;">유의사항</h2>
+            <p style="font-size:14px;line-height:1.7;color:oklch(35% 0.02 50);margin:0;">이 화면의 식당·수치는 데모용 예시 데이터예요. 실제 서비스에서는 공개된 원본 데이터를 그대로 반영합니다.</p>
+          </div>
+        </div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:80px;background:rgba(255,255,255,0.97);border-top:1px solid oklch(90% 0.014 60);display:flex;z-index:40;padding-bottom:20px;box-sizing:border-box;">
+          <div onClick="{{ goMap }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 2C6.7 2 4 4.7 4 8c0 4.5 6 10 6 10s6-5.5 6-10c0-3.3-2.7-6-6-6z" fill="none" stroke="{{ tabMapColor }}" stroke-width="1.8"></path><circle cx="10" cy="8" r="2.2" fill="{{ tabMapColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabMapColor }};">지도</span>
+          </div>
+          <div onClick="{{ goRanking }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="11" width="4" height="7" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="8" y="6" width="4" height="12" rx="1" fill="{{ tabRankingColor }}"></rect><rect x="14" y="2" width="4" height="16" rx="1" fill="{{ tabRankingColor }}"></rect></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabRankingColor }};">랭킹</span>
+          </div>
+          <div onClick="{{ goInfo }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+            <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="{{ tabInfoColor }}" stroke-width="1.8"></circle><rect x="9" y="9" width="2" height="5.5" rx="1" fill="{{ tabInfoColor }}"></rect><circle cx="10" cy="6" r="1.2" fill="{{ tabInfoColor }}"></circle></svg>
+            <span style="font-size:11px;font-weight:600;color:{{ tabInfoColor }};">정보</span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <div style="width:390px;height:844px;position:relative;overflow:hidden;background:white;display:flex;flex-direction:column;box-sizing:border-box;">
+        <div style="padding:58px 20px 0;flex-shrink:0;">
+          <div onClick="{{ backFromDetail }}" style="width:36px;height:36px;border-radius:50%;background:oklch(96% 0.01 60);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="9" height="15" viewBox="0 0 9 15"><path d="M8 1L1.5 7.5L8 14" stroke="oklch(30% 0.02 50)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:16px 20px 24px;box-sizing:border-box;">
+          <h1 style="font-family:'Hahmlet',serif;font-size:23px;font-weight:800;color:oklch(20% 0.02 50);margin:0 0 6px;">{{ detail.name }}</h1>
+          <p style="font-size:13.5px;color:oklch(55% 0.015 50);margin:0;">{{ detail.address }}</p>
+          <div style="display:flex;gap:0;margin:20px 0;padding:16px 0;border-top:1px solid oklch(93% 0.012 60);border-bottom:1px solid oklch(93% 0.012 60);">
+            <div style="flex:1;">
+              <div style="font-size:12px;color:oklch(58% 0.015 50);margin-bottom:4px;">총 방문</div>
+              <div style="font-size:18px;font-weight:800;color:oklch(25% 0.02 50);">{{ detail.visitsLabel }}</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:oklch(58% 0.015 50);margin-bottom:4px;">총액</div>
+              <div style="font-size:18px;font-weight:800;color:oklch(56% 0.19 35);">{{ detail.totalLabel }}</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:oklch(58% 0.015 50);margin-bottom:4px;">1인당 평균</div>
+              <div style="font-size:18px;font-weight:800;color:oklch(56% 0.19 35);">{{ detail.avgLabel }}</div>
+            </div>
+          </div>
+          <h2 style="font-size:14px;font-weight:700;color:oklch(30% 0.02 50);margin:0 0 4px;">방문 이력</h2>
+          <sc-for list="{{ detail.history }}" as="h" hint-placeholder-count="3">
+            <div style="padding:14px 0;border-bottom:1px solid oklch(93% 0.012 60);">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:8px;">
+                <span style="font-size:14px;font-weight:700;color:oklch(25% 0.02 50);">{{ h.dateLabel }} · {{ h.time }}</span>
+                <span style="font-size:15px;font-weight:800;color:oklch(56% 0.19 35);white-space:nowrap;">{{ h.amountFull }}</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="font-size:13px;color:oklch(52% 0.02 50);">{{ h.dept }} · {{ h.meal }} · {{ h.purpose }}</div>
+                <a href="{{ h.sourceUrl }}" target="_blank" rel="noreferrer" style="display:flex;align-items:center;gap:4px;flex-shrink:0;font-size:11.5px;font-weight:600;color:oklch(56% 0.19 35);text-decoration:none;background:oklch(94% 0.035 35);padding:4px 9px;border-radius:10px;">
+                  <span>원문</span>
+                  <svg width="10" height="10" viewBox="0 0 10 10"><path d="M3.5 1H9v5.5" stroke="oklch(56% 0.19 35)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 1L4 6" stroke="oklch(56% 0.19 35)" stroke-width="1.5" stroke-linecap="round"></path><path d="M7 8.5H1.5V3" stroke="oklch(56% 0.19 35)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </a>
+              </div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ detail.showMore }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ toggleHistory }}" style="text-align:center;padding:14px 0 0;font-size:13.5px;font-weight:600;color:oklch(56% 0.19 35);cursor:pointer;">더보기</div>
+          </sc-if>
+        </div>
+        <div style="flex-shrink:0;padding:14px 20px 28px;border-top:1px solid oklch(93% 0.012 60);box-sizing:border-box;">
+          <button onClick="{{ detail.onNaver }}" style="width:100%;height:52px;border:none;border-radius:14px;background:oklch(56% 0.19 35);color:white;font-size:15.5px;font-weight:700;font-family:inherit;cursor:pointer;">네이버 지도로 열기</button>
+        </div>
+      </div>
+    </sc-if>
+
+  </x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+function comma(n){ return Math.round(n).toLocaleString('ko-KR'); }
+function fmtShort(iso){ const [y,m,d]=iso.split('-').map(Number); return `${m}월 ${d}일`; }
+function fmtFull(iso){ const [y,m,d]=iso.split('-'); return `${y}.${m}.${d}`; }
+
+const GU_LIST = ['종로구','중구','용산구','성동구','광진구','동대문구','중랑구','성북구','강북구','도봉구','노원구','은평구','서대문구','마포구','양천구','강서구','구로구','금천구','영등포구','동작구','관악구','서초구','강남구','송파구','강동구'];
+const PURPOSES = ['부서 회식','실국 간담회','업무협의 다과','유관기관 간담회','송년 회식'];
+
+const BASE_RESTAURANTS = [
+  {id:1,name:'참숯골',gu:'중구',address:'서울 중구 을지로11길 23',visits:12,avgPerPerson:23000,avgHeadcount:6,lastVisit:'2026-07-01',depts:['행정국','기획조정실'],payType:'부서회식',x:38,y:44},
+  {id:2,name:'무교소호정',gu:'중구',address:'서울 중구 무교로 20',visits:8,avgPerPerson:26000,avgHeadcount:3,lastVisit:'2026-07-31',depts:['재무국'],payType:'간담회',x:44,y:39},
+  {id:3,name:'왕비집 시청무교점',gu:'중구',address:'서울 중구 세종대로11길 15',visits:5,avgPerPerson:17000,avgHeadcount:4,lastVisit:'2026-07-27',depts:['시민소통기획관','안전관리실'],payType:'부서회식',x:34,y:48},
+  {id:4,name:'을지로산장',gu:'중구',address:'서울 중구 을지로30길 8',visits:6,avgPerPerson:31000,avgHeadcount:5,lastVisit:'2026-06-18',depts:['도시교통실'],payType:'간담회',x:48,y:52},
+  {id:5,name:'안뜰한정식',gu:'종로구',address:'서울 종로구 자하문로 12',visits:9,avgPerPerson:28000,avgHeadcount:9,lastVisit:'2026-07-15',depts:['문화본부','감사위원회'],payType:'간담회',x:40,y:26},
+  {id:6,name:'대성갈비',gu:'강남구',address:'서울 강남구 테헤란로 152',visits:15,avgPerPerson:35000,avgHeadcount:11,lastVisit:'2026-07-22',depts:['경제정책실','재무국','행정국'],payType:'간담회',x:70,y:64},
+  {id:7,name:'서초순대국',gu:'서초구',address:'서울 서초구 서초대로 45',visits:4,avgPerPerson:14000,avgHeadcount:3,lastVisit:'2026-05-30',depts:['복지정책실'],payType:'부서회식',x:60,y:72},
+  {id:8,name:'여의진미식당',gu:'영등포구',address:'서울 영등포구 여의대로 24',visits:7,avgPerPerson:21000,avgHeadcount:4,lastVisit:'2026-06-05',depts:['도시교통실','안전관리실'],payType:'부서회식',x:20,y:58},
+  {id:9,name:'마포갈매기살집',gu:'마포구',address:'서울 마포구 도화길 9',visits:10,avgPerPerson:19000,avgHeadcount:5,lastVisit:'2026-07-10',depts:['문화본부'],payType:'부서회식',x:18,y:44},
+  {id:10,name:'용산일번지',gu:'용산구',address:'서울 용산구 한강대로 65',visits:6,avgPerPerson:27000,avgHeadcount:4,lastVisit:'2026-06-28',depts:['안전관리실','감사위원회'],payType:'간담회',x:38,y:54},
+  {id:11,name:'성수돈까스',gu:'성동구',address:'서울 성동구 성수이로 20',visits:5,avgPerPerson:16000,avgHeadcount:3,lastVisit:'2026-04-20',depts:['복지정책실'],payType:'부서회식',x:64,y:38},
+  {id:12,name:'잠실면옥',gu:'송파구',address:'서울 송파구 올림픽로 240',visits:11,avgPerPerson:24000,avgHeadcount:7,lastVisit:'2026-07-05',depts:['경제정책실','문화본부'],payType:'부서회식',x:80,y:68},
+];
+
+function genHistory(r){
+  const n = Math.min(r.visits, 5);
+  const arr = [];
+  const [ly,lm,ld] = r.lastVisit.split('-').map(Number);
+  const d = new Date(ly, lm-1, ld);
+  for(let i=0;i<n;i++){
+    const dd = new Date(d); dd.setDate(dd.getDate()-i*23);
+    const iso = dd.getFullYear() + '-' + String(dd.getMonth()+1).padStart(2,'0') + '-' + String(dd.getDate()).padStart(2,'0');
+    const dept = r.depts[i % r.depts.length];
+    const headcount = Math.max(2, r.avgHeadcount + (i%3) - 1);
+    const amount = Math.round(r.avgPerPerson*headcount*(0.92+(i%3)*0.06));
+    const time = ['18:30','19:10','12:20','18:50','12:40'][i%5];
+    const meal = Number(time.split(':')[0]) < 15 ? '점심' : '저녁';
+    arr.push({date: iso, dateLabel: fmtFull(iso), time, meal, dept, amount, amountLabel: comma(amount)+'원', headcount, purpose: PURPOSES[(i+r.id)%PURPOSES.length], sourceUrl: 'https://opengov.seoul.go.kr/expense/' + r.id + '-' + iso.replace(/-/g,'')});
+  }
+  return arr;
+}
+
+const RESTAURANTS = BASE_RESTAURANTS.map(r=>{
+  const history = genHistory(r);
+  const total = Math.round(r.avgPerPerson*r.avgHeadcount*r.visits);
+  const year = r.lastVisit.slice(0,4);
+  const bucket = r.avgPerPerson<20000 ? '1만원대' : (r.avgPerPerson<30000 ? '2만원대' : '3만원 이상');
+  const meals = history.map(h => h.meal);
+  const mealTypes = meals.filter((m,i) => meals.indexOf(m) === i);
+  const maxHeadcount = history.reduce((m,h) => Math.max(m, h.headcount), 0);
+  return Object.assign({}, r, {history, total, year, bucket, mealTypes, maxHeadcount});
+});
+
+const AVG_ALL = Math.round(RESTAURANTS.reduce((s,r)=>s+r.avgPerPerson,0)/RESTAURANTS.length);
+
+const SHEET_MAX_H = 594;
+const SHEET_MIN_H = 110;
+const SHEET_DELTA = SHEET_MAX_H - SHEET_MIN_H;
+
+const ACCENT='oklch(56% 0.19 35)';
+const ACCENT_SOFT='oklch(94% 0.035 35)';
+const GOOD='oklch(50% 0.1 165)';
+const GOOD_SOFT='oklch(93% 0.03 165)';
+const MUTED='oklch(62% 0.015 50)';
+
+class Component extends DCLogic {
+  state = {
+    screen: 'onboarding',
+    detailId: null,
+    detailHistoryExpanded: false,
+    sheetExpanded: false,
+    dragging: false,
+    dragDelta: SHEET_DELTA,
+    search: '',
+    filterGu: '전체',
+    filterYear: '전체',
+    filterPeople: '전체',
+    filterMeal: '전체',
+    openFilter: null,
+    sortMode: 'visits',
+    rankTab: 'visits',
+    rankGu: '전체',
+    rankGuOpen: false,
+    selectedId: null,
+    locPulse: false,
+  };
+
+  cardRefs = {};
+  listRef = null;
+
+  startApp = () => this.setState({ screen: 'map' });
+  goScreen = (s) => this.setState({ screen: s, detailId: null, openFilter: null });
+  openDetail = (id) => this.setState({ detailId: id, detailHistoryExpanded: false });
+  closeDetail = () => this.setState({ detailId: null });
+  toggleHistory = () => this.setState(s => ({ detailHistoryExpanded: !s.detailHistoryExpanded }));
+  setSearch = (e) => this.setState({ search: e.target.value });
+  setSort = (m) => this.setState({ sortMode: m });
+  setRankTab = (t) => this.setState({ rankTab: t });
+  toggleRankGu = () => this.setState(s => ({ rankGuOpen: !s.rankGuOpen }));
+  setRankGu = (v) => this.setState({ rankGu: v, rankGuOpen: false });
+  toggleFilterOpen = (key) => this.setState(s => ({ openFilter: s.openFilter === key ? null : key }));
+  setFilter = (key, val) => {
+    const map = { gu: 'filterGu', year: 'filterYear', people: 'filterPeople', meal: 'filterMeal' };
+    this.setState({ [map[key]]: val, openFilter: null });
+  };
+  openNaver = (name) => window.open('https://map.naver.com/v5/search/' + encodeURIComponent(name), '_blank');
+
+  onMarkerTap = (id) => {
+    this.setState({ sheetExpanded: true, selectedId: id, dragDelta: 0 });
+    setTimeout(() => {
+      const el = this.cardRefs[id];
+      if (el && this.listRef) {
+        this.listRef.scrollTop = Math.max(0, el.offsetTop - 12);
+      }
+      setTimeout(() => this.setState(s => (s.selectedId === id ? { selectedId: null } : null)), 1400);
+    }, 360);
+  };
+
+  handleSheetDown = (e) => {
+    this.dragStartY = e.clientY;
+    this.dragStartDelta = this.state.sheetExpanded ? 0 : SHEET_DELTA;
+    this.setState({ dragging: true, dragDelta: this.dragStartDelta });
+    this._move = (ev) => {
+      const dy = ev.clientY - this.dragStartY;
+      const next = Math.max(0, Math.min(SHEET_DELTA, this.dragStartDelta + dy));
+      this.setState({ dragDelta: next });
+    };
+    this._up = () => {
+      window.removeEventListener('pointermove', this._move);
+      window.removeEventListener('pointerup', this._up);
+      const expanded = this.state.dragDelta < SHEET_DELTA / 2;
+      this.setState({ dragging: false, sheetExpanded: expanded, dragDelta: expanded ? 0 : SHEET_DELTA });
+    };
+    window.addEventListener('pointermove', this._move);
+    window.addEventListener('pointerup', this._up);
+  };
+
+  hitLocation = () => {
+    this.setState({ locPulse: true });
+    setTimeout(() => this.setState({ locPulse: false }), 650);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const matchesFilters = (r) =>
+      (s.filterGu === '전체' || r.gu === s.filterGu) &&
+      (s.filterYear === '전체' || r.year === s.filterYear) &&
+      (s.filterPeople === '전체' || r.maxHeadcount >= parseInt(s.filterPeople, 10)) &&
+      (s.filterMeal === '전체' || r.mealTypes.indexOf(s.filterMeal) !== -1) &&
+      (s.search.trim() === '' || r.name.includes(s.search.trim()));
+
+    const filtered = RESTAURANTS.filter(matchesFilters);
+
+    const sorters = {
+      visits: (a,b) => b.visits - a.visits,
+      avg: (a,b) => b.avgPerPerson - a.avgPerPerson,
+      recent: (a,b) => (a.lastVisit < b.lastVisit ? 1 : -1),
+    };
+    const sortedList = filtered.slice().sort(sorters[s.sortMode]);
+
+    const badgeFor = (r) => {
+      const diff = Math.round((r.avgPerPerson - AVG_ALL) / AVG_ALL * 100);
+      const positive = diff >= 0;
+      return {
+        text: `평균 대비 ${positive?'+':''}${diff}%`,
+        bg: positive ? ACCENT_SOFT : GOOD_SOFT,
+        color: positive ? ACCENT : GOOD,
+      };
+    };
+
+    const sheetList = sortedList.map(r => {
+      const badge = badgeFor(r);
+      const extraDepts = r.depts.length > 2 ? r.depts.length - 2 : 0;
+      return {
+        id: r.id, name: r.name, gu: r.gu,
+        visitsLabel: `${r.visits}회`,
+        avgLabel: comma(r.avgPerPerson) + '원',
+        lastLabel: fmtShort(r.lastVisit),
+        maxPeopleLabel: `최대 ${r.maxHeadcount}명`,
+        purpose: r.history[0] ? r.history[0].purpose : '',
+        deptTags: r.depts.slice(0,2),
+        extraDepts, hasExtraDepts: extraDepts > 0,
+        badgeText: badge.text, badgeBg: badge.bg, badgeColor: badge.color,
+        cardBg: s.selectedId === r.id ? ACCENT_SOFT : 'oklch(98% 0.008 75)',
+        cardBorder: s.selectedId === r.id ? ACCENT : 'transparent',
+        onClick: () => this.openDetail(r.id),
+        setRef: (el) => { this.cardRefs[r.id] = el; },
+      };
+    });
+
+    const mapMarkers = filtered.map(r => {
+      const size = 26 + Math.min(r.visits, 15) * 2;
+      return { id: r.id, left: r.x + '%', top: r.y + '%', size, halfSize: -size/2, label: r.visits, onClick: () => this.onMarkerTap(r.id) };
+    });
+
+    const filterCategories = [
+      { key: 'gu', label: s.filterGu === '전체' ? '자치구' : s.filterGu, on: s.filterGu !== '전체' },
+      { key: 'year', label: s.filterYear === '전체' ? '기간' : s.filterYear, on: s.filterYear !== '전체' },
+      { key: 'meal', label: s.filterMeal === '전체' ? '식사유형' : s.filterMeal, on: s.filterMeal !== '전체' },
+      { key: 'people', label: s.filterPeople === '전체' ? '방문인원' : s.filterPeople, on: s.filterPeople !== '전체' },
+    ].map(c => {
+      const isOn = s.openFilter === c.key || c.on;
+      return { key: c.key, label: c.label, bg: isOn ? ACCENT : 'white', color: isOn ? 'white' : 'oklch(30% 0.02 50)', onClick: () => this.toggleFilterOpen(c.key) };
+    });
+
+    const optionSource = {
+      gu: ['전체'].concat(GU_LIST), year: ['전체','2026','2025'], meal: ['전체','점심','저녁'],
+      people: ['전체','4명 이상','6명 이상','10명 이상'],
+    };
+    const currentVal = { gu: s.filterGu, year: s.filterYear, people: s.filterPeople, meal: s.filterMeal };
+    const buildOptions = (key) => optionSource[key].map(v => {
+      const active = v === currentVal[key];
+      return { value: v, bg: active ? ACCENT : 'oklch(96% 0.01 75)', color: active ? 'white' : 'oklch(30% 0.02 50)', active,
+        rowBg: active ? ACCENT_SOFT : 'transparent', rowColor: active ? ACCENT : 'oklch(30% 0.02 50)',
+        checkColor: active ? ACCENT : 'transparent',
+        onClick: () => this.setFilter(key, v) };
+    });
+    const filterOptions = (s.openFilter && s.openFilter !== 'gu') ? buildOptions(s.openFilter) : [];
+    const guOptions = s.openFilter === 'gu' ? buildOptions('gu') : [];
+
+    const sortOptions = [
+      { key: 'visits', label: '방문 많은 순' },
+      { key: 'avg', label: '1인당 비싼 순' },
+      { key: 'recent', label: '최근 순' },
+    ].map(o => ({ key:o.key, label:o.label, bg: s.sortMode === o.key ? ACCENT : 'transparent', color: s.sortMode === o.key ? 'white' : 'oklch(45% 0.02 50)', onClick: () => this.setSort(o.key) }));
+
+    const rankTabs = [
+      { key: 'visits', label: '많이 간 곳' },
+      { key: 'avg', label: '1인당 비싼 곳' },
+      { key: 'depts', label: '부서 여러 곳' },
+    ].map(t => ({ key:t.key, label:t.label, color: s.rankTab === t.key ? ACCENT : 'oklch(55% 0.02 50)', borderColor: s.rankTab === t.key ? ACCENT : 'transparent', onClick: () => this.setRankTab(t.key) }));
+
+    const rankSorters = {
+      visits: (a,b) => b.visits - a.visits,
+      avg: (a,b) => b.avgPerPerson - a.avgPerPerson,
+      depts: (a,b) => b.depts.length - a.depts.length,
+    };
+    const rankMetric = (r) => s.rankTab === 'visits' ? `${r.visits}회` : s.rankTab === 'avg' ? comma(r.avgPerPerson)+'원' : `${r.depts.length}개 부서`;
+    const rankGuPool = RESTAURANTS.filter(r => s.rankGu === '전체' || r.gu === s.rankGu);
+    const rankGuOptions = ['전체'].concat(GU_LIST.filter(g => RESTAURANTS.some(r => r.gu === g))).map(v => ({
+      value: v,
+      rowBg: v === s.rankGu ? ACCENT_SOFT : 'transparent',
+      rowColor: v === s.rankGu ? ACCENT : 'oklch(30% 0.02 50)',
+      checkColor: v === s.rankGu ? ACCENT : 'transparent',
+      onClick: () => this.setRankGu(v),
+    }));
+    const rankingList = rankGuPool.slice().sort(rankSorters[s.rankTab]).map((r,i) => ({
+      id: r.id, rank: i+1, name: r.name, gu: r.gu, metric: rankMetric(r),
+      badgeBg: i===0?ACCENT: i<3?'oklch(60% 0.14 45)':'oklch(92% 0.01 60)',
+      badgeColor: i<3?'white':'oklch(45% 0.02 50)',
+      onClick: () => this.openDetail(r.id),
+    }));
+
+    const detailR = s.detailId ? RESTAURANTS.find(r => r.id === s.detailId) : null;
+    let detail = null;
+    if (detailR) {
+      const historyVisible = s.detailHistoryExpanded ? detailR.history : detailR.history.slice(0,3);
+      detail = {
+        name: detailR.name, address: detailR.address,
+        visitsLabel: `${detailR.visits}회`,
+        totalLabel: comma(detailR.total)+'원',
+        avgLabel: comma(detailR.avgPerPerson)+'원',
+        history: historyVisible.map(h => Object.assign({}, h, { amountFull: h.amountLabel + ` · ${h.headcount}명` })),
+        showMore: detailR.history.length > 3 && !s.detailHistoryExpanded,
+        onNaver: () => this.openNaver(detailR.name),
+      };
+    }
+
+    const sheetTranslateY = s.dragging ? s.dragDelta : (s.sheetExpanded ? 0 : SHEET_DELTA);
+    const sheetTransition = s.dragging ? 'none' : 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
+    const activeView = detailR ? 'detail' : s.screen;
+
+    return {
+      isOnboarding: activeView === 'onboarding',
+      isMap: activeView === 'map',
+      isRanking: activeView === 'ranking',
+      isInfo: activeView === 'info',
+      isDetail: activeView === 'detail',
+      startApp: this.startApp,
+      search: s.search, setSearch: this.setSearch,
+      filterCategories, filterOptions, guOptions,
+      showFilterOptions: !!s.openFilter && s.openFilter !== 'gu',
+      showGuDropdown: s.openFilter === 'gu',
+      areaCountLabel: `이 지역 ${filtered.length}곳`,
+      mapMarkers,
+      sheetExpanded: s.sheetExpanded, sheetTranslateY, sheetTransition,
+      handleSheetDown: this.handleSheetDown,
+      sortOptions, sheetList,
+      setListRef: (el) => { this.listRef = el; },
+      hitLocation: this.hitLocation,
+      locPulse: s.locPulse ? 'locPulse 0.6s ease-out' : 'none',
+      rankTabs, rankingList, rankGuOptions,
+      rankGuLabel: s.rankGu === '전체' ? '자치구 전체' : s.rankGu,
+      rankGuOpen: s.rankGuOpen,
+      toggleRankGu: this.toggleRankGu,
+      rankSubtitle: `2026년 연간 · ${rankGuPool.length}곳`,
+      detail,
+      backFromDetail: this.closeDetail,
+      toggleHistory: this.toggleHistory,
+      goMap: () => this.goScreen('map'),
+      goRanking: () => this.goScreen('ranking'),
+      goInfo: () => this.goScreen('info'),
+      tabMapColor: s.screen === 'map' ? ACCENT : MUTED,
+      tabRankingColor: s.screen === 'ranking' ? ACCENT : MUTED,
+      tabInfoColor: s.screen === 'info' ? ACCENT : MUTED,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
