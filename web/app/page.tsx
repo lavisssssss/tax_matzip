@@ -162,16 +162,16 @@ export default function MapPage() {
     [allPlaces, filterGu],
   )
 
-  const sheetPlaces = useMemo(() =>
-    boundsFilter
+  const sheetPlaces = useMemo(() => {
+    const base = boundsFilter
       ? filteredPlaces.filter(p =>
           p.lat !== null && p.lng !== null &&
           p.lat >= boundsFilter.swLat && p.lat <= boundsFilter.neLat &&
           p.lng >= boundsFilter.swLng && p.lng <= boundsFilter.neLng
         )
-      : filteredPlaces,
-    [filteredPlaces, boundsFilter],
-  )
+      : filteredPlaces
+    return [...base].sort((a, b) => b.total_amount - a.total_amount)
+  }, [filteredPlaces, boundsFilter])
 
   const applyBoundsFilter = useCallback(() => {
     if (!naverMap.current) return
