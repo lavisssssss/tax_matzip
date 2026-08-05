@@ -382,14 +382,6 @@ export default function MapPage() {
           <Dropdown id="year" label="연도"    value={filterYear} options={YEARS}                 onChange={setFilterYear} />
           <Dropdown id="gu"   label="자치구"  value={filterGu}   options={['전체',...SEOUL_GU]} onChange={setFilterGu}   />
           <Dropdown id="meal" label="식사유형" value={filterMeal} options={MEAL_TYPES}            onChange={setFilterMeal} />
-          {boundsFilter && (
-            <button onClick={() => setBoundsFilter(null)} style={{
-              display: 'flex', alignItems: 'center', gap: 3,
-              padding: '8px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-              background: 'rgba(255,255,255,0.9)', color: 'oklch(40% 0.012 265)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)', cursor: 'pointer', border: 'none',
-            }}>지도범위 해제 <span style={{ fontSize: 10 }}>✕</span></button>
-          )}
         </div>
       </div>
 
